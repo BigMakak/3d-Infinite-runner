@@ -15,3 +15,4 @@ MonoBehaviour:
   Gravity: -350
   JumpForce: 50
   HoldJumpTime: 0.2
+  JumpThreshold: 1.5
