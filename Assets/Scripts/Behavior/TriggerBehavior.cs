@@ -3,11 +3,21 @@ using UnityEngine.Events;
 
 public class TriggerBehavior : MonoBehaviour
 {
+    [SerializeField] private string Tag = "";
 
-    public UnityEvent<Vector3> OnTriggerActivated;
+    public UnityEvent OnTriggerActivated;
 
     void OnTriggerEnter(Collider other)
     {
-        OnTriggerActivated?.Invoke(this.transform.position);
+        if(string.IsNullOrEmpty(Tag)) 
+        {
+            OnTriggerActivated?.Invoke();
+            return;
+        }
+
+        if(other.gameObject.tag == Tag) 
+        {
+            OnTriggerActivated?.Invoke();
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -6,15 +7,23 @@ using UnityEngine;
 public class GameController : MonoBehaviour
 {
 
-    public static GameController Instance {get; private set;}
+    //External Global Values
+    public static GameController Instance { get; private set; }
 
-    public float DistanceTravelled { get; set; }
+    public float DistanceTravelled { get; private set; }
+
+    public float Points { get; private set; }
+
+    //Global Events to the Main Game
+    public event Action OnGameEnd;
 
     public GameConfigs gameConfigs;
 
     private Timer m_gameTimer;
 
     private float m_currSpeed;
+
+    private bool m_isStoped = false;
 
     void Awake()
     {
@@ -24,7 +33,7 @@ public class GameController : MonoBehaviour
         {
             Destroy(this);
             return;
-        } 
+        }
 
         Instance = this;
     }
@@ -32,29 +41,50 @@ public class GameController : MonoBehaviour
     void Start()
     {
         m_gameTimer = new Timer(gameConfigs.GameTime);
+
+        m_gameTimer.OnTimerEnd += EndGame;
     }
 
     void Update()
     {
+        if(m_isStoped)
+            return;
+
         m_gameTimer.Tick(Time.deltaTime);
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
+        if(m_isStoped) 
+            return;
+
         increaseGameSpeed();
     }
 
+    public void AddPoints(int _points)
+    {
+        this.Points += _points;
+    }
 
-    public float GetCurrentSpeed() 
+
+    public float GetCurrentSpeed()
     {
         return this.m_currSpeed;
     }
 
 
-    public float GetTimeLeft() 
+    public float GetTimeLeft()
     {
         return this.m_gameTimer.RemaingSeconds;
+    }
+
+
+    public void EndGame() 
+    {
+        m_isStoped = true;
+        m_currSpeed = 0;
+        OnGameEnd?.Invoke();
     }
 
 
@@ -63,17 +93,43 @@ public class GameController : MonoBehaviour
         // Define a velocity ratio, so that player accelerates until a certain point
         float velocityRatio = m_currSpeed / gameConfigs.MaxXVelocity;
 
-        float _acceleration = Mathf.Abs(m_gameTimer.RemaingSeconds - gameConfigs.GameTime); 
+        //The game Accelerates has the time goes on
+        float _acceleration = Mathf.Abs(m_gameTimer.RemaingSeconds - gameConfigs.GameTime);
 
         _acceleration *= 1 - velocityRatio;
-
         //Increase the X value based on the current acceleration value
         m_currSpeed += _acceleration * Time.fixedDeltaTime;
 
-        //Limit the X value 
+        incrementGameValues(m_currSpeed);
+
+        //Limit the current X speed of the game 
         if (m_currSpeed >= gameConfigs.MaxXVelocity)
         {
             m_currSpeed = gameConfigs.MaxXVelocity;
         }
+    }
+
+    private void incrementGameValues(float _currSpeed)
+    {
+
+        //Calculate Distance travelled based on passed time
+        DistanceTravelled += _currSpeed * Mathf.Lerp(1, 0, GetTimeLeft() / gameConfigs.GameTime);
+
+        //The counter will increment if the ration is meet
+        int incrementCounter = Mathf.FloorToInt(_currSpeed / gameConfigs.PointsRatio);
+
+        Debug.Log(incrementCounter);
+
+        // Check if there has been an increment
+        if (incrementCounter > 0)
+        {
+            //Add points to the game
+            AddPoints(incrementCounter);
+        }
+    }
+
+    void OnDisable()
+    {
+        m_gameTimer.OnTimerEnd -= EndGame;
     }
 }

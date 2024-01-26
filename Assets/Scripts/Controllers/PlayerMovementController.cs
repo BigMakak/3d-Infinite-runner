@@ -11,12 +11,12 @@ public class PlayerMovementController : MonoBehaviour
 
     private bool m_isGrounded;
 
+    //Jump related Variables
     private bool m_jump;
 
     private bool m_releaseJump;
 
-    //Player current velocity vector
-    private Vector3 m_velocity;
+    private Collider m_currCollider = null;
 
     private Rigidbody m_rb;
 
@@ -50,13 +50,13 @@ public class PlayerMovementController : MonoBehaviour
 
         checkGroundCollision();
 
-        if(m_jump) 
+        if (m_jump)
         {
             Jump();
             m_jump = false;
         }
 
-        if(m_releaseJump) 
+        if (m_releaseJump)
         {
             Jump(true);
             m_releaseJump = false;
@@ -77,9 +77,10 @@ public class PlayerMovementController : MonoBehaviour
                 //m_velocity.y = playerConfig.JumpForce;
                 m_jump = true;
             }
-        } else 
+        }
+        else
         {
-            if(m_playerInputController.m_jumpAction.WasReleasedThisFrame()) 
+            if (m_playerInputController.m_jumpAction.WasReleasedThisFrame())
             {
                 m_releaseJump = true;
             }
@@ -90,48 +91,64 @@ public class PlayerMovementController : MonoBehaviour
     /// Adds a Force to the Player, for it to Jump or descend faster
     /// </summary>
     /// <param name="down">If the jump will have a downward force</param>
-    private void Jump(bool down = false) 
+    private void Jump(bool down = false)
     {
         Vector3 _direction = Vector3.up;
         float _jumpForce = playerConfig.JumpForce;
 
         //We want to a apply a downward force to the player, to simulate a smaller jump
-        if(down) 
+        if (down)
         {
             _direction = Vector3.down;
             _jumpForce = playerConfig.JumpForce / 3;
         }
 
-        m_rb.AddForce(_direction * _jumpForce * Time.fixedDeltaTime,ForceMode.Impulse);
+        m_rb.AddForce(_direction * _jumpForce * Time.fixedDeltaTime, ForceMode.Impulse);
     }
 
-    private void checkGravity() 
+    /// <summary>
+    /// Adds more Gravity if the player is Falling
+    /// </summary>
+    private void checkGravity()
     {
-         if(m_rb.velocity.y > 0) 
+        if (m_rb.velocity.y > 0)
         {
             m_rb.mass = playerConfig.NormalMass;
-        } else 
+        }
+        else
         {
             m_rb.mass = playerConfig.NormalMass * playerConfig.MaxMultiplier;
         }
     }
 
+    /// <summary>
+    /// Checks if the player has hit the ground
+    /// Adds points if it landed on a different block/platform
+    /// </summary> 
     private void checkGroundCollision()
     {
         Vector3 _spherePosition = new Vector3(this.transform.position.x, this.transform.position.y - playerConfig.BottomThresholf, this.transform.position.z);
         Collider[] _rayCastResult = new Collider[5];
-        int _hits = Physics.OverlapSphereNonAlloc(_spherePosition,playerConfig.SphereSize,_rayCastResult,GroundMask);
+        int _hits = Physics.OverlapSphereNonAlloc(_spherePosition, playerConfig.SphereSize, _rayCastResult, GroundMask);
 
         //Debug.Log("Hits length: " + _hits);
 
         //The player lands on something
-        if(_hits > 0) 
+        if (_hits > 0)
         {
+            Collider _currCollider = _rayCastResult[0].GetComponent<Collider>();
+
+            if (_currCollider != m_currCollider && m_currCollider != null)
+            {
+                GameController.Instance.AddPoints(playerConfig.PointsForLanding);
+            }
             //Get the max bounds of the collided object
             //Reset the necessary values for a second jump
+            m_currCollider = _currCollider;
             m_isGrounded = true;
-            m_rb.mass = playerConfig.NormalMass; 
-        } else 
+            m_rb.mass = playerConfig.NormalMass;
+        }
+        else
         {
             m_isGrounded = false;
         }

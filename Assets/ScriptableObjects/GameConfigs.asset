@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30ffa450ec146794c8f313e278cfdbcb, type: 3}
   m_Name: GameConfigs
   m_EditorClassIdentifier: 
-  MaxAcceleration: 10
-  MaxXVelocity: 70
+  MaxXVelocity: 120
   GameTime: 60
+  PointsRatio: 10

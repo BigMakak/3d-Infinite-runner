@@ -14,9 +14,9 @@ public class PlayerConfig : ScriptableObject
 
     public float JumpForce = 450; // The force that is applied to the player when jumping
 
-    public float HoldJumpTime = 0.35f; // The time in seconds, that the player can hold the jump button
-
     public float BottomThresholf = 1f; // The size of the sphere to check collisions
 
     public float SphereSize = 0.3f;
+
+    public int PointsForLanding = 10;
 }

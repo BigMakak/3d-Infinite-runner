@@ -4,11 +4,9 @@ using UnityEngine;
 public class ProceduralConfigs : ScriptableObject
 {
 
-    public float minBlockSizeMultiplier = 0.6f; // Minimum block size
-    public float maxBlockSizeMultiplier = 1.2f; // Maximum block size
+    public float MinBlockSizeMultiplier = 0.6f; // Minimum block size
+    public float MaxBlockSizeMultiplier = 1.2f; // Maximum block size
 
-    public float maxBlockHeight = -5;
-
-    public float minBlockHeight = -10;
+    public float HeightDiscrepancy = 5; // The discprancy between block heigths
 
 }

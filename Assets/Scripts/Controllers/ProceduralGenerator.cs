@@ -4,56 +4,52 @@ using UnityEngine;
 
 public class ProceduralGenerator : MonoBehaviour
 {
+    [Header("Prefabs")]
+    [SerializeField] private List<GameObject> groundPrefabs = new List<GameObject>();
 
-    [SerializeField] private GameObject groundPrefab;
-
+    [Header("Spawn Points")]
     [SerializeField] private Transform spawnPoint;
 
     [SerializeField] private Transform farSpawnPoint;
 
+    [Header("Configs")]
     [SerializeField] private ProceduralConfigs proceduralConfigs;
+    [SerializeField] private GameConfigs gameConfigs;
 
-    private Queue<GameObject> m_grounds;
-
-    public float maxTime = 60f; // Set the maximum time for your game
-
-
-    void Awake()
-    {
-        m_grounds = new Queue<GameObject>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
-    public void SpawnGround(Vector3 _lastPosition)
+    public void SpawnGround()
     {
 
          // Adjust block size based on timeLeft
-        float _blockSizeMultiplier = Mathf.Lerp(proceduralConfigs.minBlockSizeMultiplier, proceduralConfigs.maxBlockSizeMultiplier, GameController.Instance.GetTimeLeft() / maxTime);
+        float _blockSizeMultiplier = Mathf.Lerp(proceduralConfigs.MinBlockSizeMultiplier, proceduralConfigs.MaxBlockSizeMultiplier, GameController.Instance.GetTimeLeft() / gameConfigs.GameTime);
 
-        float _blockSpacing = Mathf.Lerp(farSpawnPoint.transform.position.x,spawnPoint.transform.position.x, GameController.Instance.GetTimeLeft() / maxTime);
+        float _blockSpacing = Mathf.Lerp(farSpawnPoint.transform.position.x,spawnPoint.transform.position.x, GameController.Instance.GetTimeLeft() / gameConfigs.GameTime);
 
-        Debug.LogFormat("Block Size Multiplier: {0} || _BLOCKSPACING: {1}", _blockSizeMultiplier,_blockSpacing);
+        //Debug.LogFormat("Block Size Multiplier: {0} || _BLOCKSPACING: {1}", _blockSizeMultiplier,_blockSpacing);
 
-        GameObject _currObject = Instantiate(groundPrefab,spawnPoint.transform.position,Quaternion.identity);
+        GameObject _currObject = Instantiate(randomizePrefab(),spawnPoint.transform.position,Quaternion.identity);
 
         _currObject.transform.localScale *= randomizeSizeMultiplier(_blockSizeMultiplier);
         _currObject.transform.position = randomizePosition(_blockSpacing);
     }
 
+
+    private GameObject randomizePrefab() 
+    {
+        //Get a random index between 0 and the max number of prefabs that exist on the list
+        int _randomIndex = Random.Range(0,groundPrefabs.Count);
+        
+        return groundPrefabs[_randomIndex];
+    }
+
     private float randomizeSizeMultiplier(float _currMultiplier)
     {
-        
         return Random.Range(_currMultiplier - 0.2f,_currMultiplier);
     }
 
     private Vector3 randomizePosition(float _blockSpacing)
     {
-        float _randomY = Random.Range(proceduralConfigs.minBlockHeight,proceduralConfigs.maxBlockHeight);
+        float _intialHeight = spawnPoint.transform.position.y;
+        float _randomY = Random.Range(_intialHeight - proceduralConfigs.HeightDiscrepancy,_intialHeight + proceduralConfigs.HeightDiscrepancy);
         return new Vector3(_blockSpacing,_randomY,0f);
     }
 

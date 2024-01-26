@@ -17,5 +17,4 @@ public class PlayerInputController : MonoBehaviour
         m_jumpAction = m_playerInput.actions["Jump"];
 
     }
-   
 }
