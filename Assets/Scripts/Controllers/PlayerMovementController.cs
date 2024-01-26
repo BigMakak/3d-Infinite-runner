@@ -3,9 +3,15 @@ using UnityEngine;
 
 public class PlayerMovementController : MonoBehaviour
 {
+    [Header("Player Configurations")]
     public PlayerConfig playerConfig;
 
     [SerializeField] private LayerMask GroundMask;
+
+    [Header("Player Visuals")]
+    [SerializeField] private GameObject jumpParticles;
+
+    private bool m_playedSFX = false;
 
     #region Internal Player Variables
 
@@ -52,6 +58,8 @@ public class PlayerMovementController : MonoBehaviour
 
         if (m_jump)
         {
+            AudioController.Instance.PlayAudio("Jump");
+            //Reset internal value
             Jump();
             m_jump = false;
         }
@@ -138,11 +146,14 @@ public class PlayerMovementController : MonoBehaviour
         {
             Collider _currCollider = _rayCastResult[0].GetComponent<Collider>();
 
+            playSFX();
+
+            //If the collider is different, we count it as points for landing
             if (_currCollider != m_currCollider && m_currCollider != null)
             {
                 GameController.Instance.AddPoints(playerConfig.PointsForLanding);
             }
-            //Get the max bounds of the collided object
+        
             //Reset the necessary values for a second jump
             m_currCollider = _currCollider;
             m_isGrounded = true;
@@ -151,7 +162,18 @@ public class PlayerMovementController : MonoBehaviour
         else
         {
             m_isGrounded = false;
+            m_playedSFX = false;
         }
+    }
+
+    private void playSFX() 
+    {
+        if(!m_playedSFX) 
+        {
+            Instantiate(jumpParticles,this.transform).GetComponent<ParticleSystem>().Play();
+            m_playedSFX = true;
+        }
+        
     }
 
     void OnDrawGizmos()

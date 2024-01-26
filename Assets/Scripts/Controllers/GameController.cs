@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameController : MonoBehaviour
@@ -19,6 +16,7 @@ public class GameController : MonoBehaviour
 
     public GameConfigs gameConfigs;
 
+    //Internal variables
     private Timer m_gameTimer;
 
     private float m_currSpeed;
@@ -62,26 +60,11 @@ public class GameController : MonoBehaviour
         increaseGameSpeed();
     }
 
-    public void AddPoints(int _points)
-    {
-        this.Points += _points;
-    }
-
-
-    public float GetCurrentSpeed()
-    {
-        return this.m_currSpeed;
-    }
-
-
-    public float GetTimeLeft()
-    {
-        return this.m_gameTimer.RemaingSeconds;
-    }
-
-
     public void EndGame() 
     {
+        AudioController.Instance.PlayAudio("Lose");
+
+        //Reset values and stop the game from running
         m_isStoped = true;
         m_currSpeed = 0;
         OnGameEnd?.Invoke();
@@ -127,6 +110,25 @@ public class GameController : MonoBehaviour
             AddPoints(incrementCounter);
         }
     }
+
+    
+    public void AddPoints(int _points)
+    {
+        this.Points += _points;
+    }
+
+
+    public float GetCurrentSpeed()
+    {
+        return this.m_currSpeed;
+    }
+
+
+    public float GetTimeLeft()
+    {
+        return this.m_gameTimer.RemaingSeconds;
+    }
+
 
     void OnDisable()
     {

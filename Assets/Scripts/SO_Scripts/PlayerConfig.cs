@@ -18,5 +18,8 @@ public class PlayerConfig : ScriptableObject
 
     public float SphereSize = 0.3f;
 
-    public int PointsForLanding = 10;
+    [Header("Point Variables")]
+    public int PointsForLanding = 50;
+
+    public int PointsForCoins = 1000;
 }

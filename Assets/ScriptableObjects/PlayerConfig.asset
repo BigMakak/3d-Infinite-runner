@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NormalMass: 1
   MaxMultiplier: 3
-  JumpForce: 2500
+  JumpForce: 2250
   BottomThresholf: 1
   SphereSize: 0.5
+  PointsForLanding: 10
+  PointsForCoins: 1000

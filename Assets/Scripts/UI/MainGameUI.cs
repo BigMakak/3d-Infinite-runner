@@ -37,6 +37,12 @@ public class MainGameUI : MonoBehaviour
 
     private void showGameOverMenu() 
     {
+        //We don't need the Game over menu to be opened a second time
+        if(mainMenu.activeSelf) 
+        {
+            return;
+        }
+
         mainMenu.SetActive(true);
 
         finalScore.text = finalScore.text + "\n" + GameController.Instance.Points;
