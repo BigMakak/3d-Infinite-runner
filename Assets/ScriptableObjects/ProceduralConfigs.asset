@@ -9,12 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b6d080d95ba161a4fba54e34371051e9, type: 3}
-  m_Name: PlayerConfig
+  m_Script: {fileID: 11500000, guid: 985985f306742234b81a8f92e537a305, type: 3}
+  m_Name: ProceduralConfigs
   m_EditorClassIdentifier: 
-  NormalMass: 1
-  MaxMultiplier: 3
-  JumpForce: 2500
-  HoldJumpTime: 0.2
-  BottomThresholf: 1
-  SphereSize: 0.3
+  maxY: -5
+  minY: -10
+  maxWidth: 1.5
+  minwith: 0.5
+  SpawnTime: 0.5

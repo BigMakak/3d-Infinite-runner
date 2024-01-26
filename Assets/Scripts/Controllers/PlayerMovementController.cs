@@ -1,27 +1,27 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMovementController : MonoBehaviour
 {
     public PlayerConfig playerConfig;
 
+    [SerializeField] private LayerMask GroundMask;
+
     #region Internal Player Variables
 
     private bool m_isGrounded;
-    private float m_groundHeight = 0;
+
+    private bool m_jump;
+
+    private bool m_releaseJump;
 
     //Player current velocity vector
     private Vector3 m_velocity;
 
-    // The accelaration of the player horizontally
-    private float m_acceleration = 10f;
+    private Rigidbody m_rb;
 
     // Behavior Dependencies
     private PlayerInputController m_playerInputController;
-
-    private GameController m_gameController;
 
     #endregion
 
@@ -29,7 +29,7 @@ public class PlayerMovementController : MonoBehaviour
     {
         m_playerInputController = GetComponent<PlayerInputController>();
 
-        m_gameController = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameController>();
+        m_rb = GetComponent<Rigidbody>();
 
         if (!m_playerInputController)
         {
@@ -40,83 +40,110 @@ public class PlayerMovementController : MonoBehaviour
 
     void Update()
     {
+        checkGroundCollision();
+
         checkPlayerInput();
     }
 
     void FixedUpdate()
     {
-        Vector3 _nextPos = transform.position;
 
-        m_gameController.DistanceTravelled += m_velocity.x * Time.deltaTime;
+        checkGroundCollision();
 
-        movePlayerVertically();
-
-        movePlayerHorizontally(ref _nextPos);
-
-        transform.position = _nextPos;
-    }
-
-    public Vector3 GetPlayerMovement() 
-    {
-        return this.m_velocity;
-    }
-
-    private void movePlayerHorizontally(ref Vector3 _initialPos)
-    {
-        if (m_isGrounded)
+        if(m_jump) 
         {
-            return;
+            Jump();
+            m_jump = false;
         }
 
-        //Change the horizontal speed of the player
-        _initialPos.y += m_velocity.y * Time.fixedDeltaTime;
-        //Alter the speed by applying Gravity to the horizontal velocity of the player
-        if (!m_playerInputController.Jump)
-            m_velocity.y += playerConfig.Gravity * Time.fixedDeltaTime;
-
-        //! Temporary code for checking ground collision
-        if (_initialPos.y <= m_groundHeight)
+        if(m_releaseJump) 
         {
-            _initialPos.y = m_groundHeight;
-            m_isGrounded = true;
-            m_playerInputController.ResetValues();
+            Jump(true);
+            m_releaseJump = false;
         }
+
+        checkGravity();
     }
 
-    private void movePlayerVertically()
-    {
-        if (!m_isGrounded)
-        {
-            return;
-        }
-
-        // Define a velocity ratio, so that player accelerates until a certain point
-        float velocityRatio = m_velocity.x / playerConfig.MaxXVelocity;
-
-        m_acceleration = playerConfig.MaxAcceleration * (1 - velocityRatio);
-
-        //Increase the X value based on the current acceleration value
-        m_velocity.x += m_acceleration * Time.fixedDeltaTime;
-
-        //Limit the X value 
-        if (m_velocity.x >= playerConfig.MaxXVelocity)
-        {
-            m_velocity.x = playerConfig.MaxXVelocity;
-        }
-    }
+    #region Private Functions
 
     private void checkPlayerInput()
     {
-        //Add a small threshold to the jump, so that the player can jump just has the model is about to hit the ground
-        float groundDistance = Math.Abs(transform.position.y - m_groundHeight);
-
-        if (m_isGrounded || groundDistance <= playerConfig.JumpThreshold)
+        if (m_isGrounded)
         {
-            if (m_playerInputController.Jump)
+            if (m_playerInputController.m_jumpAction.WasPerformedThisFrame())
             {
                 m_isGrounded = false;
-                m_velocity.y = playerConfig.JumpForce;
+                //m_velocity.y = playerConfig.JumpForce;
+                m_jump = true;
+            }
+        } else 
+        {
+            if(m_playerInputController.m_jumpAction.WasReleasedThisFrame()) 
+            {
+                m_releaseJump = true;
             }
         }
     }
+
+    /// <summary>
+    /// Adds a Force to the Player, for it to Jump or descend faster
+    /// </summary>
+    /// <param name="down">If the jump will have a downward force</param>
+    private void Jump(bool down = false) 
+    {
+        Vector3 _direction = Vector3.up;
+        float _jumpForce = playerConfig.JumpForce;
+
+        //We want to a apply a downward force to the player, to simulate a smaller jump
+        if(down) 
+        {
+            _direction = Vector3.down;
+            _jumpForce = playerConfig.JumpForce / 3;
+        }
+
+        m_rb.AddForce(_direction * _jumpForce * Time.fixedDeltaTime,ForceMode.Impulse);
+    }
+
+    private void checkGravity() 
+    {
+         if(m_rb.velocity.y > 0) 
+        {
+            m_rb.mass = playerConfig.NormalMass;
+        } else 
+        {
+            m_rb.mass = playerConfig.NormalMass * playerConfig.MaxMultiplier;
+        }
+    }
+
+    private void checkGroundCollision()
+    {
+        Vector3 _spherePosition = new Vector3(this.transform.position.x, this.transform.position.y - playerConfig.BottomThresholf, this.transform.position.z);
+        Collider[] _rayCastResult = new Collider[5];
+        int _hits = Physics.OverlapSphereNonAlloc(_spherePosition,playerConfig.SphereSize,_rayCastResult,GroundMask);
+
+        //Debug.Log("Hits length: " + _hits);
+
+        //The player lands on something
+        if(_hits > 0) 
+        {
+            //Get the max bounds of the collided object
+            //Reset the necessary values for a second jump
+            m_isGrounded = true;
+            m_rb.mass = playerConfig.NormalMass; 
+        } else 
+        {
+            m_isGrounded = false;
+        }
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Vector3 _spherePosition = new Vector3(this.transform.position.x, this.transform.position.y - playerConfig.BottomThresholf, this.transform.position.z);
+
+        Gizmos.DrawWireSphere(_spherePosition, playerConfig.SphereSize);
+    }
+
+    #endregion
 }

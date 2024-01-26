@@ -9,14 +9,11 @@ public class Parallax : MonoBehaviour
 
     //Internal Variables
 
-    private PlayerMovementController m_playerMove;
-
     private RawImage m_rawImage;
 
     // Start is called before the first frame update
     void Start()
     {
-        m_playerMove = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerMovementController>();
         //Setup the texture values and intial position for reference
         m_rawImage = GetComponent<RawImage>();
     }
@@ -24,13 +21,13 @@ public class Parallax : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Scroll();
+        scroll();
     }
 
-    void Scroll() 
+    private void scroll() 
     {
         //Scroll the image with a new rect, determined by the player X Movement Value
-        float _newXPos = m_playerMove.GetPlayerMovement().x * VALUEDAMP / Depth;
+        float _newXPos = GameController.Instance.GetCurrentSpeed() * VALUEDAMP / Depth;
 
         m_rawImage.uvRect = new Rect(m_rawImage.uvRect.position + new Vector2(_newXPos,0f) * Time.deltaTime,m_rawImage.uvRect.size);
     }

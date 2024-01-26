@@ -17,11 +17,11 @@ public class Timer
 
     public void Tick(float deltaTime) 
     {
+        CheckForTimerEnd();
+
         if(RemaingSeconds <= 0f) { return; }
 
         RemaingSeconds -= deltaTime;
-
-        CheckForTimerEnd();
     }
 
     /// <summary>
